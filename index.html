@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1267,8 +1266,15 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
 </div>
 
 <script>
+  // Инициализация Telegram WebApp
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand(); // Разворачивает Mini App на весь экран
+  }
+
   // Game Configuration & State
-  const SECRET_WORD = "superpupersecret".toLowerCase();
+  const SECRET_WORD = "wherethelist".toLowerCase();
   const MAX_LIVES = 6;
   
   const state = {
@@ -1297,11 +1303,13 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   function initKeyboard() {
     KEYBOARD_ROWS.forEach((row, index) => {
       const rowContainer = document.getElementById(`row${index + 1}`);
-      if (rowContainer) rowContainer.innerHTML = '';
+      if (!rowContainer) return;
+      rowContainer.innerHTML = '';
+      
       row.forEach(letter => {
         const btn = document.createElement('button');
         btn.className = 'key-btn';
-        if (btn) btn.textContent = letter;
+        btn.textContent = letter;
         btn.dataset.letter = letter;
         btn.id = `key-${letter}`;
         btn.addEventListener('click', () => handleGuess(letter));
@@ -1331,6 +1339,11 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   function checkGameStatus() {
     if (state.remainingLives <= 0) {
       state.gameStatus = 'lost';
+      
+      // Отправка данных в Telegram бота при проигрыше
+      if (tg) {
+        tg.sendData(JSON.stringify({ status: "game_over", reason: "lost" }));
+      }
     } else {
       const allGuessed = state.secretWord.split('').every(char => state.guessedLetters.has(char));
       if (allGuessed) {
@@ -1342,27 +1355,31 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   // Render / Update UI
   function updateUI() {
     // Update Word Display
-    wordContainer.innerHTML = '';
-    const wordChars = state.secretWord.split('');
-    
-    wordChars.forEach(char => {
-      const slot = document.createElement('div');
-      slot.className = 'letter-slot';
+    if (wordContainer) {
+      wordContainer.innerHTML = '';
+      const wordChars = state.secretWord.split('');
       
-      if (state.guessedLetters.has(char)) {
-        if (slot) slot.textContent = char;
-        slot.classList.add('revealed');
-      } else if (state.gameStatus === 'lost') {
-        if (slot) slot.textContent = char;
-        slot.classList.add('lost-reveal');
-      } else {
-        if (slot) slot.textContent = '';
-      }
-      wordContainer.appendChild(slot);
-    });
+      wordChars.forEach(char => {
+        const slot = document.createElement('div');
+        slot.className = 'letter-slot';
+        
+        if (state.guessedLetters.has(char)) {
+          slot.textContent = char;
+          slot.classList.add('revealed');
+        } else if (state.gameStatus === 'lost') {
+          slot.textContent = char;
+          slot.classList.add('lost-reveal');
+        } else {
+          slot.textContent = '';
+        }
+        wordContainer.appendChild(slot);
+      });
+    }
 
     // Update Lives Badge
-    livesText.textContent = `${state.remainingLives} / ${MAX_LIVES} Lives`;
+    if (livesText) {
+      livesText.textContent = `${state.remainingLives} / ${MAX_LIVES} Lives`;
+    }
 
     // Update Hangman Drawing
     const wrongCount = MAX_LIVES - state.remainingLives;
@@ -1395,18 +1412,24 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
     });
 
     // Update Victory / Defeat Overlay
-    if (state.gameStatus === 'won') {
-      if (endTitle) endTitle.textContent = "You Won! 🎉";
-      endTitle.className = "end-status-title won";
-      if (endWord) endWord.textContent = state.secretWord;
-      endOverlay.classList.add('visible');
-    } else if (state.gameStatus === 'lost') {
-      if (endTitle) endTitle.textContent = "Game Over 💀";
-      endTitle.className = "end-status-title lost";
-      if (endWord) endWord.textContent = state.secretWord;
-      endOverlay.classList.add('visible');
-    } else {
-      endOverlay.classList.remove('visible');
+    if (endOverlay) {
+      if (state.gameStatus === 'won') {
+        if (endTitle) {
+          endTitle.textContent = "You Won! 🎉";
+          endTitle.className = "end-status-title won";
+        }
+        if (endWord) endWord.textContent = state.secretWord;
+        endOverlay.classList.add('visible');
+      } else if (state.gameStatus === 'lost') {
+        if (endTitle) {
+          endTitle.textContent = "Game Over 💀";
+          endTitle.className = "end-status-title lost";
+        }
+        if (endWord) endWord.textContent = state.secretWord;
+        endOverlay.classList.add('visible');
+      } else {
+        endOverlay.classList.remove('visible');
+      }
     }
   }
 
@@ -1428,7 +1451,9 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
   });
 
   // Play Again Button Listener
-  playAgainBtn.addEventListener('click', resetGame);
+  if (playAgainBtn) {
+    playAgainBtn.addEventListener('click', resetGame);
+  }
 
   // Initialize
   initKeyboard();
@@ -1462,4 +1487,3 @@ button.active, button.is-active, button.selected, button.is-selected, button[ari
 <script>/*luminous-slider-normalizer*/(function(){function f(r){if(!r||r.type!=='range')return;var mn=parseFloat(r.min||'0'),mx=parseFloat(r.max||'100'),v=parseFloat(r.value);if(isNaN(v))v=(mn+mx)/2;var p=mx>mn?((v-mn)/(mx-mn))*100:50;r.style.setProperty('--progress',p+'%');r.style.removeProperty('--slider-fill');}function all(){document.querySelectorAll('input[type="range"], .lumi-slider').forEach(f);}document.addEventListener('input',function(e){f(e.target);});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',all);else all();})();</script>
 </body>
 </html>
-```
