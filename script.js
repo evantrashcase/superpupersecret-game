@@ -117,10 +117,12 @@ function checkGameStatus() {
     if (state.remainingLives <= 0) {
         state.gameStatus = 'lost';
 
-        // Отправка данных в Telegram бота и закрытие Web App
+        // Отправка данных боту и закрытие окна игры при поражении
         if (tg) {
             tg.sendData(JSON.stringify({ status: "game_over", reason: "lost" }));
-            tg.close();
+            setTimeout(() => {
+                tg.close();
+            }, 100);
         }
     } else {
         const allGuessed = state.secretWord.split('').every(char => state.guessedLetters.has(char));
