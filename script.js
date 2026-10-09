@@ -125,11 +125,10 @@ function checkGameStatus() {
                 console.error("Ошибка при отправке tg.sendData:", e);
             }
 
-            // 2. Ждем 1.2 секунды, чтобы Telegram успел отправить данные на сервер,
-            // и только потом закрываем окно Mini App
+            // 2. Даем Telegram 1.5 секунды на гарантированную отправку пакета
             setTimeout(() => {
                 tg.close();
-            }, 1200);
+            }, 1500);
         }
     } else {
         const allGuessed = state.secretWord.split('').every(char => state.guessedLetters.has(char));
