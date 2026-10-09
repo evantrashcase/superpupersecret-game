@@ -117,12 +117,19 @@ function checkGameStatus() {
     if (state.remainingLives <= 0) {
         state.gameStatus = 'lost';
 
-        // Отправка данных боту и закрытие окна игры при поражении
+        // Отправка данных боту и закрытие Web App при поражении
         if (tg) {
-            tg.sendData(JSON.stringify({ status: "game_over", reason: "lost" }));
+            try {
+                // 1. Отправляем данные боту
+                tg.sendData(JSON.stringify({ status: "game_over", reason: "lost" }));
+            } catch (e) {
+                console.error("Ошибка отправки данных в Telegram:", e);
+            }
+
+            // 2. Закрываем окно с небольшим таймаутом (100-200мс)
             setTimeout(() => {
                 tg.close();
-            }, 100);
+            }, 150);
         }
     } else {
         const allGuessed = state.secretWord.split('').every(char => state.guessedLetters.has(char));
