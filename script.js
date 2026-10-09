@@ -117,19 +117,19 @@ function checkGameStatus() {
     if (state.remainingLives <= 0) {
         state.gameStatus = 'lost';
 
-        // Отправка данных боту и закрытие Web App при поражении
         if (tg) {
             try {
                 // 1. Отправляем данные боту
                 tg.sendData(JSON.stringify({ status: "game_over", reason: "lost" }));
             } catch (e) {
-                console.error("Ошибка отправки данных в Telegram:", e);
+                console.error("Ошибка при отправке tg.sendData:", e);
             }
 
-            // 2. Закрываем окно с небольшим таймаутом (100-200мс)
+            // 2. Ждем 1.2 секунды, чтобы Telegram успел отправить данные на сервер,
+            // и только потом закрываем окно Mini App
             setTimeout(() => {
                 tg.close();
-            }, 150);
+            }, 1200);
         }
     } else {
         const allGuessed = state.secretWord.split('').every(char => state.guessedLetters.has(char));
